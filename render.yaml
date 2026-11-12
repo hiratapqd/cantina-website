@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: casinha-azul
+    name: casinha-azul-demo
     runtime: node
+    plan: free
     buildCommand: npm ci --omit=dev
-    startCommand: npm start
+    startCommand: npm run demo
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
@@ -11,8 +12,8 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATA_MODE
-        value: mongodb
-      - key: MONGODB_URI
-        sync: false
+        value: demo
+      - key: HOST
+        value: 0.0.0.0
       - key: APP_SECRET
         generateValue: true

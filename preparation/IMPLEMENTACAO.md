@@ -109,7 +109,11 @@ Os testes usam armazenamento isolado em memória, servidor HTTP temporário e as
 
 ## Render
 
-`render.yaml` prepara um webservice Node.js com instalação `npm ci --omit=dev`, inicialização `npm start`, variável `PORT` fornecida pelo Render e verificação `/health`. Configurar `MONGODB_URI` no painel do serviço e manter o `APP_SECRET` gerado. Escolher região e plano conforme o uso. Preparar coleções/índices e conferir a rede a partir do ambiente de hospedagem antes da utilização.
+`render.yaml` prepara a **demonstração** em um webservice Node.js chamado `casinha-azul-demo`, no plano gratuito, com instalação `npm ci --omit=dev`, inicialização `npm run demo`, `DATA_MODE=demo`, `HOST=0.0.0.0`, variável `PORT` fornecida pelo Render e verificação `/health`. O `APP_SECRET` é gerado pelo Blueprint; não é necessário fornecer `MONGODB_URI`. Crie um Blueprint conectado ao repositório para aplicar essa configuração. Para um serviço criado manualmente, copie os comandos e variáveis descritos no README e configure um segredo aleatório de pelo menos 32 caracteres.
+
+Depois do deploy, `/health` deve responder `{"status":"ok","mode":"demo"}`. Os dados ficam em memória, são compartilhados pelos visitantes da mesma instância e voltam aos exemplos ao reiniciar o processo. O plano gratuito pode suspender o serviço por inatividade; a próxima abertura pode demorar.
+
+Para uma futura publicação com banco real, use um serviço separado, inicialização `npm start`, `DATA_MODE=mongodb`, `MONGODB_URI` configurada no painel e um `APP_SECRET` persistente. Prepare coleções/índices e confira a rede e o controle de acesso antes da utilização. `npm run demo` sempre força dados em memória, mesmo que haja uma URI configurada.
 
 Nenhum serviço foi publicado durante esta implementação. Como não há autenticação individual, usar ambiente de demonstração ou acesso restrito antes de disponibilizar dados reais. CSRF e HTTPS não substituem controle de acesso. As permissões técnicas do banco são independentes do login dos voluntários.
 
