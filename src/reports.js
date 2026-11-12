@@ -3,6 +3,8 @@ function inRange(value, range) { return value && dayKey(value) >= range.from && 
 function buildReport(data, query = {}) {
   const range = period(query);
   const type = query.type || 'vendas';
+  const unsoldDays = [30, 60, 90, 180, 365].includes(Number(query.days)) ? Number(query.days) : 60;
+  let bookSummary = null;
   const paid = data.orders.filter(order => order.status === 'paga' && inRange(order.paidAt, range));
   const entries = data.orders.flatMap(order => order.items.map(item => ({ ...item, order, date: item.occurredAt || order.createdAt }))).filter(item => inRange(item.date, range));
   const types = { vendas: 'Produtos lançados', recebimentos: 'Recebimentos', livros: 'Livros vendidos', doacao: 'Mensalidades e doações', rifa: 'Rifas', bazar: 'Bazar', estoque: 'Estoque mínimo', parados: 'Sem vendas há 60 dias', movimentacoes: 'Movimentação de estoque', livraria: 'Movimentação da livraria' };
@@ -29,8 +31,10 @@ function buildReport(data, query = {}) {
       const cumulative = intervals.map(days => history.filter(i => age(i) >= 0 && age(i) < days).reduce((a, i) => a + i.quantity, 0));
       const bands = intervals.map((days, index) => history.filter(i => age(i) >= (intervals[index - 1] || 0) && age(i) < days).reduce((a, i) => a + i.quantity, 0));
       const last = history.sort((a, b) => new Date(b.date) - new Date(a.date))[0]?.date;
-      return { name: book.name, code: book.isbn, condition: book.condition, stock: book.stock, minStock: book.minStock, last, cumulative, bands, quantity: bookEntries.filter(i => i.catalogId === book._id).reduce((a, i) => a + i.quantity, 0), totalCents: bookEntries.filter(i => i.catalogId === book._id).reduce((a, i) => a + i.totalCents, 0) };
-    }).filter(row => query.view !== 'sem-vendas' || row.cumulative[1] === 0);
+      return { name: book.name, code: book.isbn, publisher: book.publisher, condition: book.condition, stock: book.stock, minStock: book.minStock, last, cumulative, bands, quantity: bookEntries.filter(i => i.catalogId === book._id).reduce((a, i) => a + i.quantity, 0), totalCents: bookEntries.filter(i => i.catalogId === book._id).reduce((a, i) => a + i.totalCents, 0) };
+    });
+    bookSummary = [30, 60, 90, 180, 365].map((days, index) => ({ days, cumulative: rows.reduce((sum, row) => sum + row.cumulative[index], 0), bands: rows.reduce((sum, row) => sum + row.bands[index], 0), unsold: rows.filter(row => row.cumulative[index] === 0).length }));
+    rows = rows.filter(row => query.view !== 'sem-vendas' || row.cumulative[[30, 60, 90, 180, 365].indexOf(unsoldDays)] === 0);
   } else {
     const filtered = entries.filter(i => type === 'livros' ? i.kind === 'books' : ['doacao', 'rifa', 'bazar'].includes(type) ? i.category === type : !['doacao', 'rifa', 'bazar'].includes(i.category) && i.kind !== 'books');
     const map = new Map();
@@ -42,7 +46,7 @@ function buildReport(data, query = {}) {
     rows = [...map.values()].sort((a, b) => b.totalCents - a.totalCents);
   }
   totalCents = rows.reduce((a, r) => a + (r.totalCents || 0), 0);
-  return { range, type, view: query.view || 'periodo', title: types[type] || types.vendas, types, rows, totalCents };
+  return { range, type, view: query.view || 'periodo', title: types[type] || types.vendas, types, rows, totalCents, bookSummary, unsoldDays };
 }
 function dashboard(data) {
   const today = dayKey(new Date());

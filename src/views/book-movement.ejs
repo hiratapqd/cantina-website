@@ -1,0 +1,31 @@
+<% const bands = ['0–29 dias', '30–59 dias', '60–89 dias', '90–179 dias', '180–364 dias'];
+const exportQuery = new URLSearchParams({ type: 'livraria', view: report.view, days: String(report.unsoldDays), from: report.range.from, to: report.range.to }); %>
+<section class="page-heading">
+  <div><p class="eyebrow">LIVRARIA</p><h1>Movimentação da livraria</h1><p class="subtitle">Acompanhe as quantidades vendidas e os livros sem movimento recente.</p></div>
+  <div class="heading-actions"><a class="button secondary" href="/livraria">Estoque de livros</a><button type="button" class="button secondary" data-print>Imprimir</button><a class="button" href="/relatorios/exportar.csv?<%= exportQuery.toString() %>">Exportar CSV</a></div>
+</section>
+<section class="panel">
+  <form class="filter-bar wrap" method="get">
+    <label class="grow">Visualização<select name="view">
+      <option value="acumulado" <%= report.view==='acumulado'?'selected':'' %>>Acumulado</option>
+      <option value="faixas" <%= report.view==='faixas'?'selected':'' %>>Por faixa</option>
+      <option value="sem-vendas" <%= report.view==='sem-vendas'?'selected':'' %>>Não vendidos</option>
+    </select></label>
+    <% if(report.view==='sem-vendas'){ %><label>Sem venda nos últimos<select name="days"><% for(const days of [30,60,90,180,365]){ %><option value="<%= days %>" <%= report.unsoldDays===days?'selected':'' %>><%= days %> dias</option><% } %></select></label><% } %>
+    <label>Data de referência<input type="date" name="to" value="<%= report.range.to %>" required></label>
+    <button type="submit" class="button">Consultar</button>
+  </form>
+</section>
+<div class="report-heading"><div><h2><%= {acumulado:'Acumulado',faixas:'Por faixa','sem-vendas':'Não vendidos'}[report.view] %></h2><p>Referência: <%= report.range.to.split('-').reverse().join('/') %> · <%= report.rows.length %> registros por ISBN e condição</p></div></div>
+<section class="metrics book-movement-metrics" aria-label="Resumo da movimentação">
+  <% for(const [index, summary] of report.bookSummary.entries()){ %>
+  <article class="metric"><div class="metric-top"><%= report.view==='faixas'?bands[index]:`Últimos ${summary.days} dias` %></div><strong class="metric-value"><%= report.view==='sem-vendas'?summary.unsold:report.view==='faixas'?summary.bands:summary.cumulative %></strong><span class="metric-detail"><%= report.view==='sem-vendas'?'registros sem venda':'exemplares vendidos' %></span></article>
+  <% } %>
+</section>
+<div class="info-note"><%= report.view==='faixas'?'As faixas não se sobrepõem. Cada lançamento aparece em uma única faixa.':report.view==='sem-vendas'?`Livros sem lançamentos nos últimos ${report.unsoldDays} dias, incluindo títulos que nunca foram vendidos e cadastros recentes. O resumo considera todo o acervo.`:'Cada coluna acumula os lançamentos dos últimos 30, 60, 90, 180 ou 365 dias, incluindo o dia de referência.' %> Quantidades incluem comandas abertas. Livros novos e usados aparecem separadamente.</div>
+<section class="panel">
+  <% if(!report.rows.length){ %><%- include('partials/empty',{message:'Nenhum livro encontrado nesta consulta.',detail:'Escolha outro intervalo ou confira o acervo da livraria.'}) %><% }else{ %>
+  <div class="table-wrap"><table><thead><tr><th>Livro / ISBN</th><th>Editora</th><th>Condição</th><th class="numeric">Estoque</th><th>Último lançamento</th><% for(const label of (report.view==='faixas'?bands:['30d','60d','90d','180d','365d'])){ %><th class="numeric"><%= label %></th><% } %></tr></thead>
+    <tbody><% for(const row of report.rows){ %><tr><td><strong><%= row.name %></strong><small class="cell-note"><%= row.code %></small></td><td><%= row.publisher||'—' %></td><td><%= row.condition==='usado'?'Usado':'Novo' %></td><td class="numeric"><%= row.stock %><small class="cell-note">mín. <%= row.minStock %></small></td><td><%= row.last?dateTime(row.last):'Nunca vendido' %></td><% for(const quantity of (report.view==='faixas'?row.bands:row.cumulative)){ %><td class="numeric"><%= quantity %></td><% } %></tr><% } %></tbody>
+  </table></div><% } %>
+</section>

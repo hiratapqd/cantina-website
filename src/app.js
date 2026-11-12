@@ -76,6 +76,12 @@ function createApp(store, options = {}) {
     render(res, 'orders', 'Comandas', { rows: rows.slice((currentPage - 1) * 20, currentPage * 20), total, currentPage, pages: Math.ceil(total / 20), balance: rows.reduce((a, o) => a + o.totalCents, 0) });
   });
   app.get('/comandas/:id', async (req, res) => render(res, 'order', 'Detalhe da comanda', { order: await services.required('orders', req.params.id) }));
+  app.get('/livraria/movimentacao', async (req, res) => {
+    const view = ['acumulado', 'faixas', 'sem-vendas'].includes(req.query.view) ? req.query.view : 'acumulado';
+    const reference = req.query.to || d.dayKey(new Date());
+    const report = buildReport(await services.data(), { ...req.query, from: reference, to: reference, type: 'livraria', view });
+    render(res, 'book-movement', 'Movimentação da livraria', { report });
+  });
   app.get('/relatorios', async (req, res) => {
     const data = await services.data();
     render(res, 'reports', 'Relatórios', { report: buildReport(data, req.query) });

@@ -146,3 +146,32 @@ test('relatórios acumulados e por faixa não contam um lançamento duas vezes n
   const row = report.rows.find(r => r.code === book.isbn && r.condition === book.condition);
   assert.deepEqual(row.bands, [2, 3, 0, 0, 0]); assert.deepEqual(row.cumulative, [2, 5, 5, 5, 5]);
 });
+
+test('movimentação da livraria permite selecionar as três visões e consultar referência passada', async () => {
+  for (const view of ['acumulado', 'faixas', 'sem-vendas']) {
+    const response = await fetch(origin + `/livraria/movimentacao?view=${view}&to=2026-01-01&days=90`);
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    assert.match(html, /<select name="view">/);
+    assert.match(html, new RegExp(`value="${view}" selected`));
+    assert.match(html, /01\/01\/2026/);
+    assert.match(html, /Exportar CSV/);
+    if (view === 'sem-vendas') assert.match(html, /value="90" selected/);
+  }
+  const catalog = await (await fetch(origin + '/livraria')).text();
+  assert.match(catalog, /href="\/livraria\/movimentacao"/);
+});
+
+test('não vendidos respeita o intervalo e o resumo mantém todo o acervo', () => {
+  const data = demoData(); const book = data.books[0];
+  data.orders = [{ status: 'paga', items: [{ catalogId: book._id, kind: 'books', quantity: 3, totalCents: 3000, occurredAt: '2026-10-01T12:00:00Z' }] }];
+  const options = { type: 'livraria', from: '2026-11-12', to: '2026-11-12', view: 'sem-vendas' };
+  const thirty = buildReport(data, { ...options, days: '30' });
+  const sixty = buildReport(data, { ...options, days: '60' });
+  assert.ok(thirty.rows.some(row => row.code === book.isbn && row.condition === book.condition));
+  assert.ok(!sixty.rows.some(row => row.code === book.isbn && row.condition === book.condition));
+  assert.equal(sixty.bookSummary[1].cumulative, 3);
+  assert.equal(thirty.bookSummary[0].unsold, data.books.length);
+  assert.equal(sixty.bookSummary[1].unsold, data.books.length - 1);
+  assert.equal(buildReport(data, { ...options, days: '999' }).unsoldDays, 60);
+});
