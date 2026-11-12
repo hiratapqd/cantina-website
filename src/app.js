@@ -41,7 +41,7 @@ function createApp(store, options = {}) {
     app.get(url, async (req, res) => {
       const search = String(req.query.q || '').trim().slice(0, 120);
       let rows = await store.list(kind);
-      rows = rows.filter(i => (!search || [i.name, i.code, i.isbn, i.author].some(v => String(v || '').toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR')))) && (req.query.status === 'inativos' ? !i.active : req.query.status === 'todos' ? true : i.active) && (!req.query.category || i.category === req.query.category) && (!req.query.condition || i.condition === req.query.condition) && (!req.query.low || i.stock <= i.minStock));
+      rows = rows.filter(i => (!search || [i.name, i.code, i.isbn, i.author].some(v => String(v || '').toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR')))) && (req.query.status === 'inativos' ? !i.active : req.query.status === 'todos' ? true : i.active) && (!req.query.category || i.category === req.query.category) && (!req.query.condition || i.condition === req.query.condition) && (!req.query.low || d.isLowStock(i)));
       rows.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
       const total = rows.length, currentPage = Math.max(1, Math.min(Math.ceil(total / 15) || 1, parseInt(req.query.page, 10) || 1));
       render(res, 'catalog', kind === 'books' ? 'Livraria' : 'Cantina e diversos', { kind, rows: rows.slice((currentPage - 1) * 15, currentPage * 15), total, currentPage, pages: Math.ceil(total / 15), search, base: url });

@@ -24,7 +24,7 @@ const bookSchema = z.object({
   name: shortText, isbn: z.string().trim().regex(/^\d{13}$/, 'O ISBN deve conter 13 dígitos.'),
   condition: z.enum(['novo', 'usado']), author: optionalText, publisher: optionalText, dictatedBy: optionalText,
   costCents: cents, priceCents: cents.min(1), minStock: integer,
-}).transform(value => value.condition === 'usado' ? { ...value, costCents: 0, priceCents: 1000 } : value);
+}).transform(value => value.condition === 'usado' ? { ...value, costCents: 0, priceCents: 1000, minStock: 0 } : value);
 const volunteerSchema = z.object({ name: shortText, phone: z.string().trim().regex(/^(?:\d{10,13})?$/, 'Use somente dígitos no telefone, com DDD.').default('') });
 const campaignSchema = z.object({
   name: shortText, type: z.enum(['rifa', 'bazar', 'doacao']), goalCents: cents, description: optionalText,
@@ -69,4 +69,6 @@ function period(query = {}) {
   if (from > to) throw new AppError('A data inicial deve ser anterior à final.');
   return { from, to };
 }
-module.exports = { AppError, groups, categories, paymentNames, campaignNames, productSchema, bookSchema, volunteerSchema, campaignSchema, validate, parseMoney, parsePercent, reprice, money, inputMoney, dayKey, dateTime, period };
+function minimumStock(item) { return item.condition === 'usado' ? 0 : item.minStock; }
+function isLowStock(item) { return item.condition !== 'usado' && item.stock <= minimumStock(item); }
+module.exports = { AppError, groups, categories, paymentNames, campaignNames, productSchema, bookSchema, volunteerSchema, campaignSchema, validate, parseMoney, parsePercent, reprice, money, inputMoney, dayKey, dateTime, period, minimumStock, isLowStock };

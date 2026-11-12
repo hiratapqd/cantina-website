@@ -22,8 +22,19 @@ dialog?.addEventListener('close', () => { if (dialog.returnValue === 'confirm' &
 document.querySelectorAll('[data-used-book-form]').forEach(form => {
   const condition = form.querySelector('[data-book-condition]'); if (!condition) return;
   const cost = form.querySelector('[data-cost]'), price = form.querySelector('[data-price]');
-  let newCost = cost.value, newPrice = price.value;
-  function update() { const used = condition.value === 'usado'; cost.readOnly = used; price.readOnly = used; if (used) { newCost = cost.value; newPrice = price.value; cost.value = '0,00'; price.value = '10,00'; } else { cost.value = newCost; price.value = newPrice; } const note = form.querySelector('[data-used-note]'); if (note) note.hidden = !used; }
+  const minStock = form.querySelector('[data-min-stock]');
+  let newCost = cost.value, newPrice = price.value, newMinimum = minStock.value;
+  let wasUsed = false;
+  function update() {
+    const used = condition.value === 'usado';
+    cost.readOnly = used; price.readOnly = used; minStock.readOnly = used;
+    if (used) {
+      if (!wasUsed) { newCost = cost.value; newPrice = price.value; newMinimum = minStock.value; }
+      cost.value = '0,00'; price.value = '10,00'; minStock.value = '0';
+    } else if (wasUsed) { cost.value = newCost; price.value = newPrice; minStock.value = newMinimum; }
+    wasUsed = used;
+    const note = form.querySelector('[data-used-note]'); if (note) note.hidden = !used;
+  }
   condition.addEventListener('change', update); update();
 });
 

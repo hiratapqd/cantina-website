@@ -60,8 +60,29 @@ test('valores monetários usam centavos exatos e rejeitam entradas ambíguas', (
 });
 test('usados sempre têm custo zero e venda de dez reais, mesmo com formulário manipulado', async () => {
   const service = createServices(createMemoryStore({ books: [] }));
-  const row = await service.saveCatalog('books', null, { name: 'Livro doado', isbn: '9788573289442', condition: 'usado', cost: '999', price: '999', minStock: '0' });
+  const row = await service.saveCatalog('books', null, { name: 'Livro doado', isbn: '9788573289442', condition: 'usado', cost: '999', price: '999', minStock: '999' });
   assert.equal(row.costCents, 0); assert.equal(row.priceCents, 1000);
+  assert.equal(row.minStock, 0);
+});
+
+test('usados antigos têm mínimo zero e não geram alerta, mesmo sem exemplares', async () => {
+  const data = demoData();
+  const used = data.books.find(book => book.condition === 'usado');
+  const fresh = data.books.find(book => book.condition === 'novo');
+  used.minStock = 8; used.stock = 0;
+  fresh.minStock = 3; fresh.stock = 0;
+  const local = createMemoryStore(data);
+  assert.equal((await local.get('books', used._id)).minStock, 0);
+  assert.equal((await local.list('books')).find(book => book._id === used._id).minStock, 0);
+  const stats = require('../src/reports').dashboard(data);
+  assert.ok(!stats.low.some(book => book._id === used._id));
+  assert.ok(stats.low.some(book => book._id === fresh._id));
+  const report = buildReport(data, { type: 'estoque' });
+  assert.ok(!report.rows.some(book => book.id === used._id));
+  assert.ok(report.rows.some(book => book.id === fresh._id));
+  const service = createServices(local);
+  const updated = await service.saveCatalog('books', used._id, { ...used, version: used.version, cost: '0', price: '10', minStock: 'invalid' });
+  assert.equal(updated.minStock, 0);
 });
 test('mesmo ISBN admite novo e usado, mas impede duplicação da condição', async () => {
   const service = createServices(createMemoryStore({ books: [] }));

@@ -1,13 +1,14 @@
 const { randomUUID } = require('node:crypto');
-const { AppError } = require('../domain');
+const { AppError, minimumStock } = require('../domain');
+const normalize = (name, row) => name === 'books' && row ? { ...row, minStock: minimumStock(row) } : row;
 
 function createMemoryStore(seed) {
   const data = structuredClone(seed);
   let queue = Promise.resolve();
   const repo = {
     mode: 'demo',
-    async list(name, filter = {}) { return structuredClone((data[name] || []).filter(row => Object.entries(filter).every(([key, value]) => row[key] === value))); },
-    async get(name, id) { return structuredClone((data[name] || []).find(row => row._id === id) || null); },
+    async list(name, filter = {}) { return structuredClone((data[name] || []).map(row => normalize(name, row)).filter(row => Object.entries(filter).every(([key, value]) => row[key] === value))); },
+    async get(name, id) { return structuredClone(normalize(name, (data[name] || []).find(row => row._id === id) || null)); },
     async insert(name, value) {
       const duplicate = (data[name] || []).some(row => name === 'products' ? row.code === value.code : name === 'books' ? row.isbn === value.isbn && row.condition === value.condition : name === 'movements' ? row.operationId === value.operationId : name === 'priceChanges' ? row.operationId === value.operationId && row.catalogId === value.catalogId : false);
       if (duplicate) throw new AppError('Este cadastro ou operação já existe.', 409);
@@ -38,8 +39,8 @@ async function createMongoStore(uri) {
   function repository(session) {
     return {
       mode: 'mongodb',
-      list: (name, filter = {}) => models[name].find(filter).session(session || null).lean().exec(),
-      get: (name, id) => models[name].findById(id).session(session || null).lean().exec(),
+      list: async (name, filter = {}) => (await models[name].find(filter).session(session || null).lean().exec()).map(row => normalize(name, row)),
+      get: async (name, id) => normalize(name, await models[name].findById(id).session(session || null).lean().exec()),
       async insert(name, value) { const [doc] = await models[name].create([value], session ? { session } : {}); return doc.toObject(); },
       async update(name, id, version, values) {
         const row = await models[name].findOneAndUpdate({ _id: id, version: Number(version) }, { $set: values, $inc: { version: 1 } }, { new: true, runValidators: true, session }).lean();

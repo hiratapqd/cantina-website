@@ -14,7 +14,7 @@ function demoData() {
     costCents: 0,
     priceCents: 1000,
     stock: [3, 4, 2, 1, 5][index],
-    minStock: 2,
+    minStock: 0,
   }));
   books.push(...donatedBooks);
   const volunteers = [record({ name: 'Maria Oliveira', phone: '' }), record({ name: 'José Santos', phone: '' }), record({ name: 'Ana Costa', phone: '' })];

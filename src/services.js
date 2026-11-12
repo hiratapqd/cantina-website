@@ -12,6 +12,7 @@ function createServices(store) {
     const data = d.validate(kind === 'books' ? d.bookSchema : d.productSchema, {
       ...body, costCents: kind === 'books' && body.condition === 'usado' ? 0 : d.parseMoney(body.cost),
       priceCents: kind === 'books' && body.condition === 'usado' ? 1000 : d.parseMoney(body.price),
+      minStock: kind === 'books' && body.condition === 'usado' ? 0 : body.minStock,
     });
     const identity = kind === 'books' ? { isbn: data.isbn, condition: data.condition } : { code: data.code };
     if ((await store.list(kind, identity)).some(row => row._id !== id)) throw new d.AppError('Já existe um cadastro com este código ou ISBN e condição.', 409);
