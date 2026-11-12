@@ -1,0 +1,60 @@
+CONTEXTO PARA CONTINUAR NO CODEX DO VS CODE
+Projeto: sistema de comandas da cantina e livraria Casinha Azul
+Atualizado em 10/11/2026
+
+ESTADO ATUAL
+Estamos definindo os requisitos. Nenhum aplicativo foi implementado, instalado ou integrado a pagamentos nesta conversa. Nenhuma tecnologia de implementação foi escolhida. A proposta de começar com um protótipo no navegador foi apresentada pelo assistente; a implementação ainda não foi solicitada explicitamente.
+
+OBJETIVO E EQUIPAMENTO
+Controlar as vendas da cantina e livraria do centro em que o usuário trabalha voluntariamente. A máquina usada é Clover Flex, vinculada à Caixa. Confirmar geração/modelo e versão do aparelho antes de escolher o perfil do emulador e as dependências. O objetivo futuro é rodar na própria máquina e integrar pagamentos pelos meios oficiais.
+
+REQUISITOS CONFIRMADOS PELO USUÁRIO
+- Toda comanda deve ter número. O nome é opcional: para os voluntários, facilita a busca; para os assistidos, pode-se usar somente o número. Esta regra substitui a definição anterior de nome obrigatório.
+- No balcão, a pessoa pede, a atendente registra os itens, calcula o total, registra a forma de pagamento e cobra na máquina ou em dinheiro.
+- Trabalhadores podem acumular pedidos em uma comanda aberta e pagar ao final dos trabalhos do dia.
+- Os códigos dos produtos comuns atualmente são códigos internos independentes do fornecedor. O usuário deseja evoluir a relação com fornecedores no futuro.
+- Livros são identificados pelo ISBN de 13 dígitos e pelo título.
+- A planilha fornecida contém livros novos, sem exemplares usados cadastrados.
+- Livros usados serão doados, com custo de compra zero e venda fixa de R$ 10,00, cadastrando ISBN e título.
+- Bazar, rifa e mensalidade/doação terão valor preenchido na hora.
+- Atendentes são voluntários, em geral aposentados, com alguma dificuldade de visão. A acessibilidade visual e a simplicidade são requisitos centrais.
+
+CATÁLOGO E PREÇOS
+Fonte original: C:\python_codes\Cantina\tabela_precos.xlsx
+Há uma cópia de referência junto deste contexto. Consultar a fonte original se houver novas atualizações.
+Última leitura: 65 itens, sendo 47 produtos e 18 livros novos.
+Colunas: produto, codigo, preco compra, preco final.
+Usar o preço final para cobrança; não confundir custo e venda.
+100167: chá gelado limão, R$ 8,00.
+100168: chá gelado pêssego, R$ 8,00. Duplicidade inicial corrigida pelo usuário.
+100196: água de coco, compra R$ 2,00, venda R$ 8,00.
+Consultar a planilha para os demais preços e títulos, sem inventar valores.
+
+REFERÊNCIA EM PAPEL
+Foto original: C:\Users\sergio.hirata_amaris\Downloads\Comanda_Casinha_Azul.jpeg
+A foto contém data, produtos, quantidade, valor, três linhas de livros novos por código, livros usados, bazar, rifa, mensalidade/doação, total e forma de pagamento.
+Formas de pagamento impressas: dinheiro, cartão de débito e Pix. Outras formas, pagamentos divididos e descontos não foram definidos.
+No digital, foi sugerido permitir quantos livros forem necessários, sem manter o limite de três linhas do papel.
+
+PROPOSTAS DO ASSISTENTE PARA VALIDAR NO DESENVOLVIMENTO
+- Numeração automática e busca de comanda por número ou nome.
+- Telas iniciais Nova comanda e Comandas abertas.
+- Quantidades editáveis e total automático; histórico de comandas pagas.
+- Salvar o preço de cada lançamento para preservar o histórico após reajustes.
+- Identificador próprio do registro e condição novo/usado separada do ISBN, permitindo o mesmo ISBN nas duas condições.
+- Cadastro de fornecedores separado da identificação do produto.
+- Relatório diário por produto e forma de pagamento, com comandas abertas e valores de mensalidades/doações separados das vendas.
+- Letras grandes e ajustáveis, contraste forte, botões grandes e espaçados, ícones com palavras, poucas opções por tela, número/nome/total visíveis e estados descritos por texto além das cores.
+- Validar a interface com os voluntários e na tela física; uma janela ampliada no computador não comprova legibilidade real.
+
+TESTES E INTEGRAÇÃO CLOVER
+Foi confirmada na documentação a possibilidade de usar Android Studio com perfis e componentes Clover para emulação. Protótipo no navegador é uma opção diferente, para demonstrar o fluxo, e não representa por si só um aplicativo Clover pronto.
+Pagamentos, impressão, leitura de códigos e demais funções físicas devem ser validados em equipamento adequado. Não prometer instalação direta ou integração pronta sem aprovação, testes e confirmação das capacidades disponíveis no Brasil.
+Referências consultadas:
+https://br.clover.com/desenvolvedores/
+https://docs.clover.com/dev/docs/android-emulator-overview
+https://docs.clover.com/dev/docs/setting-up-an-android-emulator
+https://docs.clover.com/dev/docs/clover-dev-kits
+
+CONTINUIDADE
+O usuário pediu para passar a trabalhar no Codex do VS Code e importar toda a conversa. conversa_casinha_azul.txt contém o histórico das mensagens, sem ferramentas e raciocínio interno. Ler este contexto, a conversa e a planilha antes de continuar. Respeitar instruções e código já existentes na pasta escolhida; não presumir que ela está vazia. Evitar repetir perguntas já respondidas. Não cobrar valores reais durante demonstrações.
